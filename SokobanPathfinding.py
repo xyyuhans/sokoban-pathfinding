@@ -64,9 +64,17 @@ class SokobanPathfinding:
 
 		return self._SUCCESS
 
+	def print_map(self) -> int:
+		"""
+		Function that prints the inputted map.
+		"""
+		for row in self._map:
+			# print all values of each row in the map matrix
+			print("".join(row))
+		return self._SUCCESS
 
 
 if __name__ == "__main__":
 	sb = SokobanPathfinding()
 	sb.read_map(sys.argv[1])
-	print(sb._map)
+	sb.print_map()
