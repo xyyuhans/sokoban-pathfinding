@@ -3,78 +3,101 @@ import sys
 
 class SokobanPathfinding:
 
-	_MAP_INPUTS = {	"free_space": ' ',
-					"wall": "#",
-					"goal": ".",
-					"player": "@",
-					"player_on_goal": "+",
-					"box": "$",
-					"box_on_goal": "*"}
+    _MAP_INPUTS = {
+        "free_space": " ",
+        "wall": "#",
+        "goal": ".",
+        "player": "@",
+        "player_on_goal": "+",
+        "box": "$",
+        "box_on_goal": "*",
+    }
 
-	_SUCCESS = 1
-	_FAIL = -1
+    def __init__(self):
+        self._map = []
+        self._position = [0, 0]
+        self._answer = []
+        self._end = False
 
-	def __init__(self):
-		self._start_row = 0
-		self._start_col = 0
-		
-		# add variables for goal locations? or something like that?
+    def read_map(self, file_name):
+        """
+        Function that reads in a map from a .txt file
+        """
+        with open(file_name) as f:
+            lines = f.readlines()
+        for line in lines:
+            line = line.replace("$", "#")
+            self._map.append(line[:-1])
 
-		self._on_goal = False
+    def find_player(self):
+        for idx, i in enumerate(self._map):
+            if self._MAP_INPUTS["player"] in i:
+                self._position[0] = idx
+                self._position[1] = i.index(self._MAP_INPUTS["player"])
 
-		self._map = []
+    def print_map(self):
+        """
+        Function that prints the inputted map.
+        """
+        for row in self._map:
+            # print all values of each row in the map matrix
+            print(row)
 
-	def read_map(self, file_name) -> int:
-		"""
-		Function that reads in a map from a .txt file
-		"""
-		curr_row = 0
-		curr_col = 0
+    def edit_map(self, position, value):
+        s = list(self._map[position[0]])
+        s[position[1]] = value
+        self._map[position[0]] = "".join(s)
 
-		start_found = False
-		on_goal = self._on_goal
+    def player_move(self, direction):
+        self.edit_map(self._position, self._MAP_INPUTS["free_space"])
+        next_position = self._position
+        if direction == "u":
+            next_position[0] -= 1
+        elif direction == "d":
+            next_position[0] += 1
+        elif direction == "l":
+            next_position[1] -= 1
+        elif direction == "r":
+            next_position[1] += 1
 
-		# open map file and read it
-		with open(file_name, "r") as f:
-			for line in f:
-				# add a row to the map matrix
-				self._map.append([])
-				# read the row's columns
-				for c in line:
-					# determine if player is already in goal
-					if not on_goal:
-						if c == self._MAP_INPUTS["player_on_goal"]:
-							self._on_goal = True
-					if not start_found:
-						# update starting position
-						if c == self._MAP_INPUTS["player"]:
-							self._row_cord = curr_row
-							self._col_cord = curr_col
-							start_found = True
-					# ignore newlines
-					if c == "\n":
-						break
-					else:
-						# add column to the row
-						self._map[curr_row].append(c)
-						# move to the next column
-						curr_col += 1
-				# move to the next row
-				curr_row += 1
+        if self._map[next_position[0]][next_position[1]] == self._MAP_INPUTS["goal"]:
+            self._end = True
+        else:
+            self.edit_map(next_position, self._MAP_INPUTS["player"])
 
-		return self._SUCCESS
-
-	def print_map(self) -> int:
-		"""
-		Function that prints the inputted map.
-		"""
-		for row in self._map:
-			# print all values of each row in the map matrix
-			print("".join(row))
-		return self._SUCCESS
+    def next_map(self):
+        while self._end == False:
+            if (
+                self._map[self._position[0] - 1][self._position[1]]
+                != self._MAP_INPUTS["wall"]
+            ):
+                self.player_move("u")
+                self._answer.append("u")
+            elif (
+                self._map[self._position[0]][self._position[1] + 1]
+                != self._MAP_INPUTS["wall"]
+            ):
+                self.player_move("r")
+                self._answer.append("r")
+            elif (
+                self._map[self._position[0] + 1][self._position[1]]
+                != self._MAP_INPUTS["wall"]
+            ):
+                self.player_move("d")
+                self._answer.append("d")
+            elif (
+                self._map[self._position[0]][self._position[1] - 1]
+                != self._MAP_INPUTS["wall"]
+            ):
+                self.player_move("l")
+                self._answer.append("l")
+            self.print_map()
+        print(self._answer)
 
 
 if __name__ == "__main__":
-	sb = SokobanPathfinding()
-	sb.read_map(sys.argv[1])
-	sb.print_map()
+    sb = SokobanPathfinding()
+    sb.read_map(sys.argv[1])
+    sb.print_map()
+    sb.find_player()
+    sb.next_map()
